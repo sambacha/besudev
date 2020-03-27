@@ -22,6 +22,9 @@ services:
       - ./config/besu/config.toml:/config/config.toml
       - ./config/besu/${SAMPLE_POA_NAME-ibft2}Genesis.json:/config/genesis.json
       - ./config/besu/networkFiles/bootnode/keys:/opt/besu/keys
+    networks:
+      sample:
+        ipv4_address: 172.24.2.10
 
   validator2:
     image: sample-network/besu:${BESU_VERSION}
@@ -35,6 +38,9 @@ services:
       - ./config/besu/networkFiles/validator2/keys:/opt/besu/keys
     depends_on:
       - bootnode
+    networks:
+      sample:
+        ipv4_address: 172.24.2.11
 
   validator3:
     image: sample-network/besu:${BESU_VERSION}
@@ -48,6 +54,9 @@ services:
       - ./config/besu/networkFiles/validator3/keys:/opt/besu/keys
     depends_on:
       - bootnode
+    networks:
+      sample:
+        ipv4_address: 172.24.2.12
 
   validator4:
     image: sample-network/besu:${BESU_VERSION}
@@ -61,6 +70,9 @@ services:
       - ./config/besu/networkFiles/validator4/keys:/opt/besu/keys
     depends_on:
       - bootnode
+    networks:
+      sample:
+        ipv4_address: 172.24.2.13
 
   rpcnode: #  We keep one node named rpcnode to have a specific node to connect the explorer
     image: sample-network/besu:${BESU_VERSION}
@@ -76,6 +88,9 @@ services:
       - bootnode
     ports:
       - 8545:8545/tcp
+    networks:
+      sample:
+        ipv4_address: 172.24.2.14
 
   explorer:
     build: block-explorer-light/.
@@ -84,6 +99,9 @@ services:
       - rpcnode
     ports:
       - 25000:80/tcp
+    networks:
+      sample:
+        ipv4_address: 172.24.2.15
 
   prometheus:
     image: "prom/prometheus"
@@ -94,6 +112,9 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090/tcp
+    networks:
+      sample:
+        ipv4_address: 172.24.2.16
 
   grafana:
     image: "grafana/grafana"
@@ -104,6 +125,9 @@ services:
       - grafana:/var/lib/grafana
     ports:
       - 3000:3000/tcp
+    networks:
+      sample:
+        ipv4_address: 172.24.2.17
 
 volumes:
   public-keys:
@@ -111,3 +135,10 @@ volumes:
   prometheus:
 
   grafana:
+
+networks:
+  sample:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.24.2.0/27
