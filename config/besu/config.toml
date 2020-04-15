@@ -6,8 +6,8 @@ min-gas-price=0
 
 # data
 data-path="/opt/besu/data"
-logging="INFO"
-host-whitelist=["prometheus","172.24.2.16","localhost","127.0.0.1"]
+logging="TRACE"
+host-whitelist=["rpcnode", "bootnode", "validator2", "validator3", "validator4"]
 
 # p2p
 p2p-port="30303"
