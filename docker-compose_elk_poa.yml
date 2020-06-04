@@ -4,10 +4,10 @@ services:
 
   bootnode:
     build:
-      context: besu/.
+      context: plus/.
       args:
         BESU_VERSION: ${BESU_VERSION}
-    image: sample-network/besu:${BESU_VERSION}
+    image: sample-network/plus:${BESU_VERSION}
     environment:
       - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
       - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
@@ -17,7 +17,10 @@ services:
       "--genesis-file=/config/genesis.json",
       "--node-private-key-file=/opt/besu/keys/key",
       "--rpc-http-api=WEB3,ETH,NET,EEA,ADMIN,${SAMPLE_POA_API-ibft}",
-      "--rpc-ws-api=WEB3,ETH,NET,EEA,ADMIN,${SAMPLE_POA_API-ibft}"]
+      "--rpc-ws-api=WEB3,ETH,NET,EEA,ADMIN,${SAMPLE_POA_API-ibft}",
+      "--metrics-categories=POA,BLOCKCHAIN,ETHEREUM,EXECUTORS,JVM,NETWORK,PEERS,PERMISSIONING,PROCESS,PRUNER,RPC,SYNCHRONIZER,TRANSACTION_POOL",
+      "--plugin-metrics-recent-block-proposer-count=50"
+    ]
     volumes:
       - public-keys:${BESU_PUBLIC_KEY_DIRECTORY}
       - ./config/besu/config.toml:/config/config.toml
@@ -27,7 +30,7 @@ services:
       - ./config/besu/networkFiles/bootnode/keys:/opt/besu/keys
 
   validator2:
-    image: sample-network/besu:${BESU_VERSION}
+    image: sample-network/plus:${BESU_VERSION}
     environment:
       - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
       - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
@@ -43,7 +46,7 @@ services:
       - bootnode
 
   validator3:
-    image: sample-network/besu:${BESU_VERSION}
+    image: sample-network/plus:${BESU_VERSION}
     environment:
       - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
       - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
@@ -59,7 +62,7 @@ services:
       - bootnode
 
   validator4:
-    image: sample-network/besu:${BESU_VERSION}
+    image: sample-network/plus:${BESU_VERSION}
     environment:
       - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
       - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
@@ -75,11 +78,21 @@ services:
       - bootnode
 
   rpcnode: #  We keep one node named rpcnode to have a specific node to connect the explorer
+    build:
+      context: besu/.
+      args:
+        BESU_VERSION: ${BESU_VERSION}
     image: sample-network/besu:${BESU_VERSION}
     environment:
       - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
       - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
-    command: *base_options
+    command: [
+      "--config-file=/config/config.toml",
+      "--genesis-file=/config/genesis.json",
+      "--node-private-key-file=/opt/besu/keys/key",
+      "--rpc-http-api=WEB3,ETH,NET,EEA,ADMIN,${SAMPLE_POA_API-ibft}",
+      "--rpc-ws-api=WEB3,ETH,NET,EEA,ADMIN,${SAMPLE_POA_API-ibft}"
+    ]
     volumes:
       - public-keys:${BESU_PUBLIC_KEY_DIRECTORY}
       - ./config/besu/config.toml:/config/config.toml
