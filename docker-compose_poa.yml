@@ -22,6 +22,9 @@ services:
       - ./config/besu/config.toml:/config/config.toml
       - ./config/besu/${SAMPLE_POA_NAME-ibft2}Genesis.json:/config/genesis.json
       - ./config/besu/networkFiles/bootnode/keys:/opt/besu/keys
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.11
 
   validator2:
     image: sample-network/besu:${BESU_VERSION}
@@ -35,6 +38,9 @@ services:
       - ./config/besu/networkFiles/validator2/keys:/opt/besu/keys
     depends_on:
       - bootnode
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.12
 
   validator3:
     image: sample-network/besu:${BESU_VERSION}
@@ -48,6 +54,9 @@ services:
       - ./config/besu/networkFiles/validator3/keys:/opt/besu/keys
     depends_on:
       - bootnode
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.13
 
   validator4:
     image: sample-network/besu:${BESU_VERSION}
@@ -61,6 +70,9 @@ services:
       - ./config/besu/networkFiles/validator4/keys:/opt/besu/keys
     depends_on:
       - bootnode
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.14
 
   rpcnode: #  We keep one node named rpcnode to have a specific node to connect the explorer
     image: sample-network/besu:${BESU_VERSION}
@@ -76,6 +88,47 @@ services:
       - bootnode
     ports:
       - 8545:8545/tcp
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.15
+
+  geth:
+    image: ethereum/client-go:latest
+    environment:
+      - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
+    entrypoint: >
+      /bin/sh -c
+      "
+      while [ ! -f "/opt/besu/public-keys/bootnode_pubkey" ]; do sleep 30; done;
+      sleep 30;
+
+      geth init --datadir=/data /config/genesis.json;
+
+      geth
+      --nodekey=/config/keys/key
+      --nousb
+      --verbosity=5
+      --datadir=/data
+      --networkid=1981
+      --syncmode=full
+      --allow-insecure-unlock
+      --ws
+      --rpcapi=admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum
+      --bootnodes=enode://c1979a8a48693db804316b5acebe35e11731e1fb1c9c21ff7268ab25db6f6e03390a429b83cf0ec0865a7205f2669ec1ace652a3def11e2e01571c74939cbe22@172.16.239.11:30303
+      --nat extip:172.16.239.16"
+    volumes:
+      - public-keys:${BESU_PUBLIC_KEY_DIRECTORY}
+      - ./config/besu/config.toml:/config/config.toml
+      - ./logs/geth:/var/log/
+      - ./config/besu/${SAMPLE_POA_NAME-ibft2}Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/node1/keys:/config/keys
+    depends_on:
+      - bootnode
+    ports:
+      - 18545:8545/tcp
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.16
 
   explorer:
     build: block-explorer-light/.
@@ -84,6 +137,9 @@ services:
       - rpcnode
     ports:
       - 25000:80/tcp
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.21
 
   prometheus:
     image: "prom/prometheus"
@@ -94,6 +150,9 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090/tcp
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.22
 
   grafana:
     image: "grafana/grafana"
@@ -104,6 +163,17 @@ services:
       - grafana:/var/lib/grafana
     ports:
       - 3000:3000/tcp
+    networks:
+      besu_quorum_clique:
+        ipv4_address: 172.16.239.23
+
+networks:
+  besu_quorum_clique:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.239.0/24
 
 volumes:
   public-keys:
