@@ -62,7 +62,7 @@ services:
     depends_on:
       - bootnode
 
-  rpcnode: #  We keep one node named rpcnode to have a specific node to connect the explorer
+  rpcnode:
     image: sample-network/besu:${BESU_VERSION}
     environment:
       - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
@@ -84,6 +84,24 @@ services:
       - rpcnode
     ports:
       - 25000:80/tcp
+
+  cakeshop:
+    image: "quorumengineering/cakeshop:0.11.0"
+    depends_on:
+      - rpcnode
+    links:
+      - rpcnode
+    ports:
+      - 8080:8080/tcp
+    volumes:
+      - ./config/cakeshop/application.properties:/tmp/application.properties
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /data/cakeshop/local /data/logs
+        cp /tmp/application.properties /data/cakeshop/local/application.properties
+        java -Xms128M -Xmx128M -Dcakeshop.config.dir=/data/cakeshop -Dlogging.path=/data/logs/cakeshop -jar /opt/cakeshop/cakeshop.war;
 
   prometheus:
     image: "prom/prometheus"

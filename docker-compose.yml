@@ -18,6 +18,19 @@ services:
       - 30303:30303/tcp
       - 30303:30303/udp
 
+  rpcnode:
+    image: sample-network/besu:${BESU_VERSION}
+    environment:
+      - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
+    command: [
+      "--config-file=/config/config.toml",
+      "--network=dev"]
+    volumes:
+      - public-keys:${BESU_PUBLIC_KEY_DIRECTORY}
+      - ./config/besu/config.toml:/config/config.toml
+    depends_on:
+      - bootnode
+
   minernode:
     image: sample-network/besu:${BESU_VERSION}
     environment:
@@ -45,21 +58,6 @@ services:
       - ./config/besu/config.toml:/config/config.toml
     depends_on:
       - bootnode
-
-  rpcnode:
-    image: sample-network/besu:${BESU_VERSION}
-    environment:
-      - BESU_PUBLIC_KEY_DIRECTORY=${BESU_PUBLIC_KEY_DIRECTORY}
-    command: [
-      "--config-file=/config/config.toml",
-      "--network=dev"]
-    volumes:
-      - public-keys:${BESU_PUBLIC_KEY_DIRECTORY}
-      - ./config/besu/config.toml:/config/config.toml
-    depends_on:
-      - bootnode
-    ports:
-      - 8545:8545/tcp
 
   explorer:
     build: block-explorer-light/.
@@ -95,3 +93,4 @@ volumes:
   prometheus:
 
   grafana:
+
