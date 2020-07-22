@@ -16,6 +16,8 @@ services:
       "--config-file=/config/config.toml",
       "--genesis-file=/config/genesis.json",
       "--node-private-key-file=/opt/besu/keys/key",
+      " --Xeip1559-enabled=true",
+      "--Xmetrics-timers-enabled",
       "--rpc-http-api=WEB3,ETH,NET,EEA,ADMIN,${SAMPLE_POA_API-ibft}",
       "--rpc-ws-api=WEB3,ETH,NET,EEA,ADMIN,${SAMPLE_POA_API-ibft}"]
     volumes:
